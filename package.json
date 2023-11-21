@@ -1,0 +1,17 @@
+{
+  "name": "my-cool-package",
+  "version": "1.0.0",
+  "description": "Testing release please and generating notes.",
+  "module": "index.mjs",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@octokit/core": "^5.0.1",
+    "semver": "^7.5.4"
+  }
+}

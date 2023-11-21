@@ -1,0 +1,39 @@
+on:
+    push:
+      branches: [main]
+    workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+name: release
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+    - id: release
+      uses: google-github-actions/release-please-action@v3
+      with:
+        release-type: node
+        package-name: my-cool-package
+        # Example: chore(main): release 5.7.0 [skip-ci]
+        # ${scope} - parenthesis included, base branch name
+        pull-request-title-pattern: 'chore${scope}: release ${version} [skip-ci]'
+        pull-request-header: 'If you are seeing this message, I failed to create the release notes :robot: _I am sorry_'
+        changelog-path: HISTORY.md
+        default-branch: main
+
+      # If release-please did not create a release, update release notes
+    - if: ${{ ! steps.release.outputs.release_created }}
+      run: |
+        RELEASE_PR=$(gh pr list --json 'headRefName,number' | jq '.[] | select( .headRefName == "release-please--branches--main--components--my-cool-package") | .number')
+        echo "RELEASE_PR=$RELEASE_PR"
+        echo "RELEASE_PR=$RELEASE_PR" >> "$GITHUB_OUTPUT"
+
+    # If release-please created a release, publish to npm
+    - if: ${{ steps.release.outputs.release_created }}
+      run: |
+        echo "Lift off!!!!!! :rocket: :rocket:"
