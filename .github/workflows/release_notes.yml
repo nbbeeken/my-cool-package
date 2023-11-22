@@ -1,4 +1,8 @@
-on: issue_comment
+on:
+  issue_comment:
+    types: [created]
+
+name: release
 
 jobs:
   pr_commented:
@@ -7,7 +11,8 @@ jobs:
     if: ${{ github.event.issue.pull_request }}
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          echo A comment on PR $NUMBER
-        env:
-          NUMBER: ${{ github.event.issue.number }}
+      - if: ${{ github.event.comment.body == '/take-notes' }}
+        name: actions/release_notes
+        uses: ./.github/actions/release_notes
+        with:
+          releasePr: ${{ github.event.issue.number }}
