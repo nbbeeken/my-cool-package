@@ -2,7 +2,7 @@
 
 All notable changes...
 
-## 0.0.1
+## [0.0.1](http://www.example.com)
 
 ### Features
 
