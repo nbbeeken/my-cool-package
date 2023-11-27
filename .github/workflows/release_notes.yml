@@ -1,57 +1,74 @@
+name: release_notes
+
 on:
-  issue_comment:
-    types: [created]
   workflow_dispatch:
     inputs:
       releasePr:
         description: 'Enter release PR number'
         required: true
         type: number
-
-name: release_notes
-
-permissions:
-  contents: write
-  pull-requests: write
+  issue_comment:
+    types: [created]
 
 jobs:
-  pr_commented:
-    # This job only runs for pull request comments
-    name: PR comment
-
+  release_notes:
     runs-on: ubuntu-latest
+    # Run only if dispatched or comment on a pull request
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'issue_comment' && github.event.issue.pull_request) }}
     steps:
-      - shell: bash
-        env:
-          EVENT: ${{ toJson(github) }}
-        run: |
-          echo $EVENT
-          exit 1
-
-      - uses: actions/checkout@v3
-
-      - id: checkIfAllowed
+      # Determine if the triggering_actor is allowed to run this action
+      # We only permit admins
+      # Not only is 'triggering_actor' common between the trigger events it will also change if someone re-runs an old job
+      - name: check if triggering_actor is allowed to generate notes
         env:
           GH_TOKEN: ${{ github.token }}
-          COMMENTER: ${{ github.triggering_actor }}
+          COMMENTER: ${{ github.triggering_actor && github.triggering_actor || 'non-empty-string' }}
+          API_ENDPOINT: /repos/${{ github.repository }}/collaborators?permission=admin
         shell: bash
         run: |
           set -o pipefail
-          gh api \
-            "/repos/${{ github.repository }}/collaborators?per_page=100&permission=admin" --paginate --jq ".[].login" \
-            | grep -q "$COMMENTER"
-
-          exit_status=$?
-          if [ -n "$exit_signal" ]; then
-            echo "$COMMENTER not permitted to trigger notes"
-            exit 1
+          if gh api "$API_ENDPOINT" --paginate --jq ".[].login" | grep -q "$COMMENTER"; then
+            echo "$COMMENTER permitted to trigger notes!" && exit 0
           else
-            echo "$COMMENTER permitted to trigger notes!"
-            exit 0
+            echo "$COMMENTER not permitted to trigger notes" && exit 1
           fi
 
-      - if: ${{ github.event.comment.body == '/take-notes' }}
-        name: actions/release_notes
-        uses: ./.github/actions/release_notes
+      # checkout the HEAD ref from prNumber
+      - uses: actions/checkout@v3
         with:
-          releasePr: ${{ github.event.issue.number }}
+          ref: refs/pull/${{ github.event_name == 'issue_comment' && github.event.issue.number || inputs.releasePr }}/head
+
+
+      # Setup Node.js and npm install
+      - name: actions/setup
+        uses: ./.github/actions/setup
+
+      # See: https://github.com/googleapis/release-please/issues/1274
+
+      # Get the PRs that are in this release
+      # Outputs a list of comma seperated PR numbers, parsed from HISTORY.md
+      - id: pr_list
+        run: node .github/scripts/pr_list.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      # From the list of PRs, gather the highlight sections of the PR body
+      # output JSON with "highlights" key (to preserve newlines)
+      - id: highlights
+        run: node .github/scripts/highlights.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_LIST: ${{ steps.pr_list.outputs.pr_list }}
+
+      # The combined output is available
+      - id: release_notes
+        run: node .github/scripts/release_notes.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          HIGHLIGHTS: ${{ steps.highlights.outputs.highlights }}
+
+      # Update the release PR body
+      - run: gh pr edit ${{ github.event_name == 'issue_comment' && github.event.issue.number || inputs.releasePr }} --body-file ${{ steps.release_notes.outputs.release_notes_path }}
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
