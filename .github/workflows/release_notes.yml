@@ -24,7 +24,7 @@ jobs:
       - shell: bash
         env:
           EVENT: ${{ toJson(github) }}
-        run:
+        run: |
           echo $EVENT
           exit 1
 
@@ -38,7 +38,7 @@ jobs:
         run: |
           set -o pipefail
           gh api \
-            "/repos/${{ github.repository_owner }}/${{ github.repository }}/collaborators?per_page=100&permission=admin" --paginate --jq ".[].login" \
+            "/repos/${{ github.repository }}/collaborators?per_page=100&permission=admin" --paginate --jq ".[].login" \
             | grep -q "$COMMENTER"
 
           exit_status=$?
