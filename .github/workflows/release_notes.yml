@@ -16,6 +16,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - id: checkIfAllowed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENTER: ${{ github.triggering_actor }}
+        shell: bash
+        run: |
+          set -o pipefail
+          gh api \
+            "/repos/${{ github.repository_owner }}/${{ github.repository }}/collaborators?per_page=100&permission=admin" --paginate --jq ".[].login" \
+            | grep -q "$COMMENTER"
+
+          exit_status=$?
+          if [ -n "$exit_signal" ]; then
+            echo "$COMMENTER not permitted to trigger notes"
+            exit 1
+          else
+            echo "$COMMENTER permitted to trigger notes!"
+            exit 0
+          fi
+
       - if: ${{ github.event.comment.body == '/take-notes' }}
         name: actions/release_notes
         uses: ./.github/actions/release_notes
