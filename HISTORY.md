@@ -2,6 +2,13 @@
 
 All notable changes...
 
+## [1.0.1](https://github.com/nbbeeken/my-cool-package/compare/v1.0.0...v1.0.1) (2023-11-29)
+
+
+### Bug Fixes
+
+* a big bug ([#5](https://github.com/nbbeeken/my-cool-package/issues/5)) ([9866181](https://github.com/nbbeeken/my-cool-package/commit/98661819190bc4159b29503a580e0b0193b424a7))
+
 ## 1.0.0 (2023-11-27)
 
 
