@@ -7,3 +7,5 @@ const myCoolFunction = (i = 1) => {
 }
 
 export { myCoolFunction as default };
+
+export { default as addon } from './src/addon.mjs';
