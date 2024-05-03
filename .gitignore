@@ -131,3 +131,6 @@ dist
 
 # Node.js Addon
 build/
+
+# IDE
+.vscode/
