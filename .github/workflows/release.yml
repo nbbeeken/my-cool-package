@@ -1,7 +1,7 @@
 on:
-    push:
-      branches: [main]
-    workflow_dispatch: {}
+  push:
+    branches: [main]
+  workflow_dispatch: {}
 
 permissions:
   contents: write
@@ -14,35 +14,24 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-    - id: release
-      uses: google-github-actions/release-please-action@v3
-      with:
-        release-type: node
-        package-name: my-cool-package
-        # Example: chore(main): release 5.7.0 [skip-ci]
-        # ${scope} - parenthesis included, base branch name
-        pull-request-title-pattern: 'chore${scope}: release ${version} [skip-ci]'
-        pull-request-header: 'If you are seeing this message, I failed to create the release notes :robot: _I am sorry_'
-        changelog-path: HISTORY.md
-        default-branch: main
+      - id: release
+        uses: google-github-actions/release-please-action@v3
+        with:
+          release-type: node
+          package-name: my-cool-package
+          # Example: chore(main): release 5.7.0 [skip-ci]
+          # ${scope} - parenthesis included, base branch name
+          pull-request-title-pattern: 'chore${scope}: release ${version} [skip-ci]'
+          pull-request-header: 'Please run the release_notes action before releasing to generate release highlights'
+          changelog-path: HISTORY.md
+          default-branch: main
 
-      # If release-please did not create a release, update release notes
-    - if: ${{ ! steps.release.outputs.release_created }}
-      id: getReleasePr
-      env:
-        GH_TOKEN: ${{ github.token }}
-      run: |
-        RELEASE_PR=$(gh pr list --json 'headRefName,number' | jq '.[] | select( .headRefName == "release-please--branches--main--components--my-cool-package") | .number')
-        echo "releasePr=$RELEASE_PR"
-        echo "releasePr=$RELEASE_PR" >> "$GITHUB_OUTPUT"
-
-    - if: ${{ ! steps.release.outputs.release_created && steps.getReleasePr.outputs.releasePr != '' }}
-      name: actions/release_notes
-      uses: ./.github/actions/release_notes
-      with:
-        releasePr: ${{ steps.getReleasePr.outputs.releasePr }}
-
-    # If release-please created a release, publish to npm
-    - if: ${{ steps.release.outputs.release_created }}
-      run: |
-        echo "Lift off!!!!!! :rocket: :rocket:"
+      # If release-please created a release, publish to npm
+      - if: ${{ steps.release.outputs.release_created }}
+        uses: actions/checkout@v3
+      - if: ${{ steps.release.outputs.release_created }}
+        name: actions/setup
+        uses: ./.github/actions/setup
+      - if: ${{ steps.release.outputs.release_created }}
+        run: |
+          echo "Lift off!!! :rocket: :rocket:"
