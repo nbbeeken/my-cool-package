@@ -22,7 +22,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-12]
     runs-on: ${{ matrix.os }}
     steps:
       # If release_please created a release, publish to npm
@@ -35,7 +35,7 @@ jobs:
         run: bash build.sh
       - uses: actions/upload-artifact@v4
         with:
-          name: build-${{ runner.os }}
+          name: build-${{ matrix.os }}
           path: build/
           if-no-files-found: 'error'
           retention-days: 1
