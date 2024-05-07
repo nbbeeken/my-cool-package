@@ -24,16 +24,19 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest, macos-12]
     runs-on: ${{ matrix.os }}
+    outputs:
+      output1: ${{ steps.upload.outputs.artifact-id }}
     steps:
       # If release_please created a release, publish to npm
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: actions/setup
         uses: ./.github/actions/setup
       - if: runner.os != 'Linux'
         run: npm run build
       - if: runner.os == 'Linux'
         run: bash build.sh
-      - uses: actions/upload-artifact@v4
+      - id: upload
+        uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}
           path: build/
@@ -41,9 +44,13 @@ jobs:
           retention-days: 1
 
   release:
-    needs: [release_please]
+    needs: [release_please, build]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+      - run: ls artifacts
       - if: ${{ needs.release_please.outputs.release_created }}
         run: |
           echo "Lift off!!! :rocket: :rocket:"
