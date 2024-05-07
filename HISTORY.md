@@ -2,6 +2,13 @@
 
 All notable changes...
 
+## [1.2.1](https://github.com/nbbeeken/my-cool-package/compare/v1.2.0...v1.2.1) (2024-05-07)
+
+
+### Bug Fixes
+
+* ignore build folder ([#12](https://github.com/nbbeeken/my-cool-package/issues/12)) ([69d4af3](https://github.com/nbbeeken/my-cool-package/commit/69d4af33b1dbd8d932cf5026d4699e5c98cb9e22))
+
 ## [1.2.0](https://github.com/nbbeeken/my-cool-package/compare/v1.1.0...v1.2.0) (2024-05-07)
 
 
