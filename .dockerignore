@@ -1,0 +1,9 @@
+**/node_modules
+.github/
+.vscode/
+build/
+docker/
+.gitignore
+HISTORY.md
+LICENSE
+README.md

@@ -5,7 +5,8 @@
   "module": "index.mjs",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "node-gyp rebuild --release"
   },
   "keywords": [],
   "author": "",
@@ -13,10 +14,7 @@
   "devDependencies": {
     "@octokit/core": "^5.0.1",
     "node-gyp": "^10.1.0",
+    "node-addon-api": "^8.0.0",
     "semver": "^7.5.4"
-  },
-  "dependencies": {
-    "node-addon-api": "^8.0.0"
-  },
-  "gypfile": true
+  }
 }

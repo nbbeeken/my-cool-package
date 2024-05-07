@@ -11,18 +11,39 @@ permissions:
 name: release
 
 jobs:
-  release-please:
+  release_please:
     runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
     steps:
       - id: release
         uses: google-github-actions/release-please-action@v4
 
-      # If release-please created a release, publish to npm
-      - if: ${{ steps.release.outputs.release_created }}
-        uses: actions/checkout@v3
-      - if: ${{ steps.release.outputs.release_created }}
-        name: actions/setup
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      # If release_please created a release, publish to npm
+      - uses: actions/checkout@v3
+      - name: actions/setup
         uses: ./.github/actions/setup
-      - if: ${{ steps.release.outputs.release_created }}
+      - if: runner.os != 'Linux'
+        run: npm run build
+      - if: runner.os == 'Linux'
+        run: bash build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ runner.os }}
+          path: build/
+          if-no-files-found: 'error'
+          retention-days: 1
+
+  release:
+    needs: [release_please]
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ needs.release_please.outputs.release_created }}
         run: |
           echo "Lift off!!! :rocket: :rocket:"
