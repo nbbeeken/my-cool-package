@@ -128,3 +128,11 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Node.js Addon
+build/
+
+# IDE
+.vscode/
+
+.DS_Store

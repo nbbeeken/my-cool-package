@@ -1,0 +1,16 @@
+ARG NODE_BUILD_IMAGE=node:alpine
+FROM node:alpine AS build
+
+RUN apk add --update alpine-sdk python3
+
+WORKDIR /my-cool-app
+COPY . .
+
+RUN npm clean-install
+ARG TARGETOS
+ARG TARGETARCH
+RUN mkdir -p /out && cp /my-cool-app/build/Release/addon.node /out/addon-$TARGETOS-$TARGETARCH-musl.node
+
+FROM scratch
+
+COPY --from=build /out /
